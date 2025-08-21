@@ -115,3 +115,18 @@ class LinearRegressionModel:
             self.slope = 0.0
 
             return False
+
+
+def load_pkl_model(filename: str = 'model.pkl') -> LinearRegressionModel:
+    
+    try:
+    
+        with open(filename, 'rb') as f:
+            model = pickle.load(f)
+
+        print(f"Model successfully loaded from {os.path.abspath(filename)}")
+        return model
+    
+    except (IOError, pickle.PickleError) as e:
+        print(f"Error loading model from {os.path.abspath(filename)}: {e}")
+        return None

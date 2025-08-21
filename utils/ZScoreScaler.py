@@ -86,3 +86,17 @@ class ZScoreScaler:
             self.std = np.nan
             return False
 
+
+def load_pkl_scaler(filename: str = 'scaler.pkl') -> ZScoreScaler:
+
+    try:
+
+        with open(filename, 'rb') as f:
+            scaler = pickle.load(f)
+
+        print(f"Scaler successfully loaded from {os.path.abspath(filename)}")
+        return scaler
+
+    except (IOError, pickle.PickleError) as e:
+        print(f"Error loading scaler from {os.path.abspath(filename)}: {e}")
+        return None
