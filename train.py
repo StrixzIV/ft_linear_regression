@@ -1,47 +1,62 @@
 #!/usr/bin/env python3
 
+import os
 import sys
+import argparse
 import pandas as pd
 
 from utils.ZScoreScaler import ZScoreScaler
 from utils.LinearRegressionModel import LinearRegressionModel
 
-if len(sys.argv) != 4:
-    print('Invalid arguements')
-    print('Usage: ./train.py <csv_data_path> <x_label> <y_label>')
-    exit(1)
+parser = argparse.ArgumentParser(description="A training script for ft_linear_regression")
 
-csv_path = sys.argv[1]
+parser.add_argument("csv_path", help="Path to CSV dataset")
+parser.add_argument("x_label", help="Column name for the independent variable (X)")
+parser.add_argument("y_label", help="Column name for the dependent variable (Y)")
+parser.add_argument("--output", default="model", help="Output directory to save model and scalers (default: ./model)")
+parser.add_argument("--epochs", type=int, default=1000, help="Number of training epochs")
+
+args = parser.parse_args()
+
+csv_path = args.csv_path
 
 try:
     df = pd.read_csv(csv_path)
     
 except Exception:
     print(f'Failed to open {csv_path}')
-    exit(1)
+    sys.exit(1)
     
-x_label = sys.argv[2]
-y_label = sys.argv[3]
+x_label = args.x_label
+y_label = args.y_label
 
 if x_label not in df.columns:
     print(f'Invalid x-label: Column "{x_label}" does not exists in the CSV file')
-    exit(1)
+    sys.exit(1)
     
 if y_label not in df.columns:
     print(f'Invalid y-label: Column "{y_label}" does not exists in the CSV file')
-    exit(1)
+    sys.exit(1)
 
 scaler_x = ZScoreScaler()
 scaler_y = ZScoreScaler()
 scaler_x.fit(df[x_label])
 scaler_y.fit(df[y_label])
 
-df['km'] = scaler_x.transform(df[x_label])
-df['price'] = scaler_y.transform(df[y_label])
+df[x_label] = scaler_x.transform(df[x_label])
+df[y_label] = scaler_y.transform(df[y_label])
 
-model = LinearRegressionModel(epoch=1000)
+model = LinearRegressionModel(epoch=args.epochs)
 model.fit(df[x_label], df[y_label])
 
-model.to_json()
-scaler_x.to_json('scaler_x.json')
-scaler_y.to_json('scaler_y.json')
+os.makedirs(args.output, exist_ok=True)
+
+model_path = os.path.join(args.output, "model.json")
+scaler_x_path = os.path.join(args.output, "scaler_x.json")
+scaler_y_path = os.path.join(args.output, "scaler_y.json")
+
+model.to_json(model_path)
+scaler_x.to_json(scaler_x_path)
+scaler_y.to_json(scaler_y_path)
+
+print(f"Training completed. Artifacts saved in {os.path.abspath(args.output)}")

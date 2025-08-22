@@ -23,16 +23,16 @@ class ZScoreScaler:
 
     def transform(self, values: float | pd.Series) -> float | pd.Series:
         
-        if self.mean == np.nan or self.std == np.nan:
-            raise ValueError('Scaler is not fitted with values yet')
+        if np.isnan(self.mean) or np.isnan(self.std):
+            raise ValueError("Scaler is not fitted with values yet")
         
         return (values - self.mean) / self.std
 
 
     def inverse_transform(self, values: float | pd.Series) -> float | pd.Series:
         
-        if self.mean == np.nan or self.std == np.nan:
-            raise ValueError('Scaler is not fitted with values yet')
+        if np.isnan(self.mean) or np.isnan(self.std):
+            raise ValueError("Scaler is not fitted with values yet")
         
         return (values * self.std) + self.mean
 
