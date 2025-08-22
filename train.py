@@ -6,15 +6,30 @@ import pandas as pd
 from utils.ZScoreScaler import ZScoreScaler
 from utils.LinearRegressionModel import LinearRegressionModel
 
-if len(sys.argv) != 3:
+if len(sys.argv) != 4:
     print('Invalid arguements')
     print('Usage: ./train.py <csv_data_path> <x_label> <y_label>')
+    exit(1)
 
 csv_path = sys.argv[1]
+
+try:
+    df = pd.read_csv(csv_path)
+    
+except Exception:
+    print(f'Failed to open {csv_path}')
+    exit(1)
+    
 x_label = sys.argv[2]
 y_label = sys.argv[3]
 
-df = pd.read_csv(csv_path)
+if x_label not in df.columns:
+    print(f'Invalid x-label: Column "{x_label}" does not exists in the CSV file')
+    exit(1)
+    
+if y_label not in df.columns:
+    print(f'Invalid y-label: Column "{y_label}" does not exists in the CSV file')
+    exit(1)
 
 scaler_x = ZScoreScaler()
 scaler_y = ZScoreScaler()
