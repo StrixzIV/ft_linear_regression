@@ -40,8 +40,8 @@ scaler_y = ZScoreScaler()
 
 if args.pkl:
     model = load_pkl_model(model_path)
-    scaler_x = load_pkl_model(scaler_x_path)
-    scaler_y = load_pkl_model(scaler_y_path)
+    scaler_x = load_pkl_scaler(scaler_x_path)
+    scaler_y = load_pkl_scaler(scaler_y_path)
 
 else:
     model.from_json(model_path)
