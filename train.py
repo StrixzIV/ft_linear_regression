@@ -15,6 +15,7 @@ parser.add_argument("x_label", help="Column name for the independent variable (X
 parser.add_argument("y_label", help="Column name for the dependent variable (Y)")
 parser.add_argument("--output", default="model", help="Output directory to save model and scalers (default: ./model)")
 parser.add_argument("--epochs", type=int, default=1000, help="Number of training epochs")
+parser.add_argument("--as-pkl", action="store_true", help="Save model and scalers as pickle (.pkl) instead of JSON")
 
 args = parser.parse_args()
 
@@ -51,12 +52,18 @@ model.fit(df[x_label], df[y_label])
 
 os.makedirs(args.output, exist_ok=True)
 
-model_path = os.path.join(args.output, "model.json")
-scaler_x_path = os.path.join(args.output, "scaler_x.json")
-scaler_y_path = os.path.join(args.output, "scaler_y.json")
+model_path = os.path.join(args.output, f"model.{'pkl' if args.as_pkl else 'json'}")
+scaler_x_path = os.path.join(args.output, f"scaler_x.{'pkl' if args.as_pkl else 'json'}")
+scaler_y_path = os.path.join(args.output, f"scaler_y.{'pkl' if args.as_pkl else 'json'}")
 
-model.to_json(model_path)
-scaler_x.to_json(scaler_x_path)
-scaler_y.to_json(scaler_y_path)
+if args.as_pkl:
+    model.to_pkl(model_path)
+    scaler_x.to_pkl(scaler_x_path)
+    scaler_y.to_pkl(scaler_y_path)
+
+else:
+    model.to_json(model_path)
+    scaler_x.to_json(scaler_x_path)
+    scaler_y.to_json(scaler_y_path)
 
 print(f"Training completed. Artifacts saved in {os.path.abspath(args.output)}")
