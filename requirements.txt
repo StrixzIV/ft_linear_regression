@@ -3,6 +3,5 @@ pandas
 tqdm
 jupyterlab
 matplotlib
-seaborn
-scikit-learn
 ipykernel
+rich
