@@ -22,7 +22,14 @@ class LinearRegressionModel:
 
         self.slope_history: list[float] = []
         self.y_intercept_history: list[float] = []
-        self.error_history: list[float] = []
+
+        self.mse_history: list[float] = []
+        self.rmse_history: list[float] = []
+        self.mae_history: list[float] = []
+        self.mape_history: list[float] = []
+        self.r2_history: list[float] = []
+        self.huber_loss_history: list[float] = []
+
 
     def get_slope(self) -> float:
         return self.slope
@@ -30,6 +37,61 @@ class LinearRegressionModel:
 
     def get_y_intercept(self) -> float:
         return self.y_intercept
+
+
+    def get_history(self) -> pd.DataFrame:
+        return pd.DataFrame({
+            'slope': self.slope_history,
+            'y_intercept': self.y_intercept_history,
+            'MSE': self.mse_history,
+            'RMSE': self.rmse_history,
+            'MAE': self.mae_history,
+            'MAPE': self.mape_history,
+            'R^2': self.r2_history,
+            'huber_loss': self.huber_loss_history
+        })
+
+
+    def calculate_metrics(self, y_true: np.ndarray, y_pred: np.ndarray, m: int) -> None:
+
+        errors = y_pred - y_true
+        
+        # Mean Squared Error
+        mse = np.sum(errors ** 2) / (2 * m)
+        
+        # Root Mean Squared Error
+        rmse = np.sqrt(np.sum(errors ** 2) / m)
+        
+        # Mean Absolute Error
+        mae = np.sum(np.abs(errors)) / m
+        
+        # Mean Absolute Percentage Error
+        mape = np.mean(np.abs(errors / np.where(y_true != 0, y_true, 1e-8))) * 100 # Add small epsilon to avoid division by zero
+        
+        # R-squared (coefficient of determination)
+        y_mean = np.mean(y_true)
+        ss_res = np.sum(errors ** 2)
+        ss_tot = np.sum((y_true - y_mean) ** 2)
+        r2 = 1 - (ss_res / (ss_tot + 1e-8))  # Add small epsilon to avoid division by zero
+        
+        # Huber Loss (robust to outliers)
+
+        # Huber loss parameter
+        delta = 1.0
+        huber_loss = np.where(
+            np.abs(errors) <= delta,
+            0.5 * errors ** 2,
+            delta * (np.abs(errors) - 0.5 * delta)
+        )
+
+        huber_loss = np.sum(huber_loss) / m
+        
+        self.mse_history.append(mse)
+        self.rmse_history.append(rmse)
+        self.mae_history.append(mae)
+        self.mape_history.append(mape)
+        self.r2_history.append(r2)
+        self.huber_loss_history.append(huber_loss)
 
 
     def predict(self, x: float | np.ndarray[float]) -> float:
@@ -49,10 +111,9 @@ class LinearRegressionModel:
         for _ in tqdm.tqdm(range(self.epoch)):
 
             predictions = self.predict(x_ndarray)
-            errors = predictions - y_ndarray
+            self.calculate_metrics(y_ndarray, predictions, m)
 
-            mean_squared_error = np.sum(errors ** 2) / (2 * m)
-            self.error_history.append(mean_squared_error)
+            errors = predictions - y_ndarray
 
             tmp_slope = self.lr * (1 / m) * np.sum(errors * x_ndarray)
             tmp_y_intercept = self.lr * (1 / m) * np.sum(errors)
