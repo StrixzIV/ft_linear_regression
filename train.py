@@ -3,7 +3,9 @@
 import os
 import sys
 import argparse
+
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 
 from utils.ZScoreScaler import ZScoreScaler
 from utils.LinearRegressionModel import LinearRegressionModel
@@ -37,6 +39,14 @@ if x_label not in df.columns:
     
 if y_label not in df.columns:
     print(f'Invalid y-label: Column "{y_label}" does not exists in the CSV file')
+    sys.exit(1)
+
+if not is_numeric_dtype(df[x_label]):
+    print(f'Error: x values column "{x_label}" should only contains numerical values.')
+    sys.exit(1)
+
+if not is_numeric_dtype(df[y_label]):
+    print(f'Error: y values column "{y_label}" should only contains numerical values.')
     sys.exit(1)
 
 scaler_x = ZScoreScaler()

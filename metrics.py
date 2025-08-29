@@ -3,7 +3,9 @@
 import os
 import sys
 import argparse
+
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 
 from rich.text import Text
 from rich.table import Table
@@ -60,6 +62,14 @@ if not os.path.exists(scaler_x_path):
 
 if not os.path.exists(scaler_y_path):
     print(f'Error: scaler_y.{"pkl" if args.pkl else "json"} does not exists at {scaler_y_path}')
+    sys.exit(1)
+
+if not is_numeric_dtype(df[x_label]):
+    print(f'Error: x values column "{x_label}" should only contains numerical values.')
+    sys.exit(1)
+
+if not is_numeric_dtype(df[y_label]):
+    print(f'Error: y values column "{y_label}" should only contains numerical values.')
     sys.exit(1)
 
 model = LinearRegressionModel()
