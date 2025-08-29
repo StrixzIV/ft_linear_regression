@@ -4,9 +4,14 @@ import os
 import sys
 import argparse
 
+from rich.table import Table
+from rich.panel import Panel
+from rich.console import Console
+
 from utils.ZScoreScaler import ZScoreScaler, load_pkl_scaler
 from utils.LinearRegressionModel import LinearRegressionModel, load_pkl_model
 
+console = Console()
 parser = argparse.ArgumentParser(description="A prediction script for ft_linear_regression")
 
 parser.add_argument("value", type=float, help="Input value to predict")
@@ -23,15 +28,15 @@ scaler_x_path = os.path.join(model_dir, f"scaler_x.{'pkl' if args.pkl else 'json
 scaler_y_path = os.path.join(model_dir, f"scaler_y.{'pkl' if args.pkl else 'json'}")
 
 if not os.path.exists(model_path):
-    print(f'Error: model.{"pkl" if args.pkl else "json"} does not exists at {model_path}')
+    console.print(f'[bold red]Error:[/] model.{"pkl" if args.pkl else "json"} not found at [bold]\'{model_path}\'[/bold].')
     sys.exit(1)
 
 if not os.path.exists(scaler_x_path):
-    print(f'Error: scaler_x.{"pkl" if args.pkl else "json"} does not exists at {scaler_x_path}')
+    console.print(f'[bold red]Error:[/] scaler_x.{"pkl" if args.pkl else "json"} file not found at [bold]\'{scaler_x_path}\'[/bold].')
     sys.exit(1)
 
 if not os.path.exists(scaler_y_path):
-    print(f'Error: scaler_y.{"pkl" if args.pkl else "json"} does not exists at {scaler_y_path}')
+    console.print(f'[bold red]Error:[/] scaler_y.{"pkl" if args.pkl else "json"} file not found at [bold]\'{scaler_y_path}\'[/bold].')
     sys.exit(1)
 
 model = LinearRegressionModel()
@@ -49,4 +54,13 @@ else:
     scaler_y.from_json(scaler_y_path)
     
 predicted_value = scaler_y.inverse_transform(model.predict(scaler_x.transform(input_value)))
-print(f'f({input_value:.2f}) = {predicted_value:.2f}')
+
+slope = scaler_x.inverse_transform(model.get_slope())
+y_intercept = scaler_y.inverse_transform(model.get_y_intercept())
+
+table = Table()
+table.add_column("Input Value", justify="right", style="cyan")
+table.add_column("Predicted Value", justify="right", style="magenta")
+table.add_row(f"{input_value:.2f}", f"{predicted_value:.2f}")
+
+console.print(Panel(table, title=f"Predictions from f(x) = {slope:.2f}x {'-' if y_intercept < 0 else '+'} {abs(y_intercept):.2f}", border_style="green"))

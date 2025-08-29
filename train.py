@@ -7,9 +7,14 @@ import argparse
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 
+from rich.table import Table
+from rich.panel import Panel
+from rich.console import Console
+
 from utils.ZScoreScaler import ZScoreScaler
 from utils.LinearRegressionModel import LinearRegressionModel
 
+console = Console()
 parser = argparse.ArgumentParser(description="A training script for ft_linear_regression")
 
 parser.add_argument("csv_path", help="Path to CSV dataset")
@@ -26,27 +31,27 @@ csv_path = args.csv_path
 try:
     df = pd.read_csv(csv_path)
     
-except Exception:
-    print(f'Failed to open {csv_path}')
+except Exception as e:
+    console.print(f"[bold red]Error:[/] Failed to open '{args.csv_path}'. Reason: {e}")
     sys.exit(1)
     
 x_label = args.x_label
 y_label = args.y_label
 
 if x_label not in df.columns:
-    print(f'Invalid x-label: Column "{x_label}" does not exists in the CSV file')
+    console.print(f"[bold red]Error:[/] Invalid x-label: Column '{args.x_label}' does not exist.")
     sys.exit(1)
     
 if y_label not in df.columns:
-    print(f'Invalid y-label: Column "{y_label}" does not exists in the CSV file')
+    console.print(f"[bold red]Error:[/] Invalid y-label: Column '{args.y_label}' does not exist.")
     sys.exit(1)
 
 if not is_numeric_dtype(df[x_label]):
-    print(f'Error: x values column "{x_label}" should only contains numerical values.')
+    console.print(f"[bold red]Error:[/] Column '{args.x_label}' must contain numerical values.")
     sys.exit(1)
 
 if not is_numeric_dtype(df[y_label]):
-    print(f'Error: y values column "{y_label}" should only contains numerical values.')
+    console.print(f"[bold red]Error:[/] Column '{args.y_label}' must contain numerical values.")
     sys.exit(1)
 
 scaler_x = ZScoreScaler()
@@ -59,6 +64,13 @@ df[y_label] = scaler_y.transform(df[y_label])
 
 model = LinearRegressionModel(epoch=args.epochs)
 model.fit(df[x_label], df[y_label])
+
+table = Table()
+table.add_column("Parameter", style="cyan")
+table.add_column("Value", style="magenta")
+table.add_row("Slope (θ₁)", f"{model.get_slope()}")
+table.add_row("Y-Intercept (θ₀)", f"{model.get_y_intercept()}")
+console.print(Panel(table, title="Final Model Parameters", border_style="green"))
 
 os.makedirs(args.output, exist_ok=True)
 
@@ -76,4 +88,4 @@ else:
     scaler_x.to_json(scaler_x_path)
     scaler_y.to_json(scaler_y_path)
 
-print(f"Training completed. Artifacts saved in {os.path.abspath(args.output)}")
+console.print(f"[bold green]Training completed[/bold green]\nArtifacts saved in {os.path.abspath(args.output)}")
