@@ -2,6 +2,8 @@ numpy
 pandas
 tqdm
 jupyterlab
-matplotlib
+ipython
 ipykernel
+notebook
+matplotlib
 rich
