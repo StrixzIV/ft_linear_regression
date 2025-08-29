@@ -1,12 +1,13 @@
 SHELL := /bin/bash
+ENV_NAME := evaluation-env
 
 setup:
-	python3 -m venv evaluation-env
-	source ./evaluation-env/bin/activate
-	pip install -r requirements.txt
+	python3 -m venv $(ENV_NAME)
+	source ./$(ENV_NAME)/bin/activate \
+		&& pip install -r requirements.txt
 
 source:
-	source ./evaluation-env/bin/activate
+	source ./$(ENV_NAME)/bin/activate
 
 clean:
-	rm -rf evaluation-env
+	rm -rf $(ENV_NAME)
